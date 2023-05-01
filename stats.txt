@@ -1,4 +1,4 @@
-kills 100
-deaths 500
-assist 200
-hskil 300
+Kills 100
+Assts 500
+Death 200
+HSnum 300
