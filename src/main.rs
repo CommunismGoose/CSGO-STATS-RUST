@@ -1,6 +1,7 @@
 #![allow(unused_variables)]
+#![allow(unused_assignments)]
 //importing needed librarys
-//use std::fs;
+use std::fs;
 use std::path::Path;
 use std::io;
 //use std::fs::File;
@@ -10,7 +11,12 @@ struct Data{
     kills:i64,
     assists:i64,
     deaths:i64,
-    hskill:i64
+    hskill:i64,
+    adr:i64,
+    score:i64,
+    rounds_won:i64,
+    rounds_lost:i64,
+    wins:i64
 }
 fn main() ->  std::io::Result<()> {
     let _stats = ["kill", "assist", "death", "mvps", "hs%", "adr","score"];
@@ -18,12 +24,12 @@ fn main() ->  std::io::Result<()> {
     //gets path for stats.txt
     let path = Path::new("stats.txt");
     //makes tuple for all the stats in stats.txt
-    let userdata = statadder(path,0,0,0,0);
+    let userdata = statadder(path,0,0,0,0,0,0,0,0,0);
     println!("You have:");
     println!("{} kills, {} assists, {} deaths, and {} headshot kills!",userdata.0,userdata.1,userdata.2,userdata.3);
     println!("please choose a map to add a stat too.");
     let mapchoose: String = input();
-    println!("Please write the number you are adding then click senter for every stat\nFirst:Kills:");
+    println!("Please write the number you are adding then click enter for every stat\nFirst, Kills:");
     let kills: i64 = input().parse().expect("Please type in a valid number!");
     println!("\nAssists:");
     let assists: i64 = input().parse().expect("Please type in a valid number!");
@@ -42,7 +48,12 @@ fn main() ->  std::io::Result<()> {
     let rounds_won: i64 = input().parse().expect("Please type in a valid number!");
     println!("Please type in the rounds lost");
     let rounds_lost: i64 = input().parse().expect("Please type in a valid number!");
-    //fs::write(path, .as_bytes())?;
+    println!("Did you win? Y/N");
+    let win:i64 = match &input()[..]{
+        "Y"=>1,
+        "N"=>0,
+        &_ => panic!("not valid"),
+    };
     let path = match &mapchoose[..]{
         "Agency"=>Path::new("agency.txt"),
         "Ancient"=>Path::new("ancient.txt"),
@@ -59,13 +70,13 @@ fn main() ->  std::io::Result<()> {
         "Vertigo"=>Path::new("vertigo.txt"),
         &_=>exit(0),
     };
-    let userdata = statadder(path,0,0,0,0);
-    println!("{mapchoose},{:?}",path,);
+    let userdata = statadder(path,kills,assists,deaths,hsprecent,average_damage_round,score,rounds_won,rounds_lost,win);
+    fs::write(path, (userdata.0.to_string()).as_bytes())?;
     Ok(())
 }
-fn statadder(path:&Path,kill:i64,assist:i64,death:i64,hskill:i64)->(i64,i64,i64,i64){
+fn statadder(path:&Path,kill:i64,assist:i64,death:i64,hskill:i64,adr:i64,score:i64,rounds_won:i64,rounds_lost:i64,wins:i64)->(i64, i64, i64, i64, i64, i64, i64, i64, i64){
     let content = std::fs::read_to_string(&path).expect("could not read file");
-    let mut userdata = Data{kills:kill,assists:assist,deaths:death,hskill:hskill};
+    let mut userdata = Data{kills:kill,assists:assist,deaths:death,hskill:hskill,adr:adr,score:score,rounds_won:rounds_won, rounds_lost:rounds_lost,wins:wins};
     for line in content.lines() {
         //create temp line to make string slice of
         let templine = line;
@@ -75,18 +86,28 @@ fn statadder(path:&Path,kill:i64,assist:i64,death:i64,hskill:i64)->(i64,i64,i64,
             Err(_) => continue,
         };
         //adds the amount to where needed 
-        if line.contains("kills"){
+        if line.contains("Kills"){
             userdata.kills = userdata.kills+slice;
-        }else if line.contains("asist"){
+        }else if line.contains("Assts"){
             userdata.assists = userdata.assists+slice;
-        }else if line.contains("death"){
+        }else if line.contains("Death"){
             userdata.deaths = userdata.deaths+slice;
-        } else if line.contains("hs%"){
+        } else if line.contains("HSnum"){
             userdata.hskill = userdata.hskill+slice;
-        } 
+        } else if line.contains("AvgDR"){
+            userdata.adr = userdata.adr+slice;
+        }else if line.contains("Score"){
+            userdata.score = userdata.score+slice
+        }else if line.contains("RWins"){
+            userdata.rounds_won = userdata.rounds_won+slice
+        }else if line.contains("RLose"){
+            userdata.rounds_lost = userdata.rounds_lost+slice
+        }else if line.contains("Wins#"){
+            userdata.wins = userdata.wins+slice
+        }
         
     }
-    return (userdata.kills,userdata.assists,userdata.deaths,userdata.hskill);
+    return (userdata.kills,userdata.assists,userdata.deaths,userdata.hskill,userdata.adr,userdata.score,userdata.rounds_won,userdata.rounds_lost,userdata.wins);
 }
 fn input() -> String {
     let mut x = String::new();
