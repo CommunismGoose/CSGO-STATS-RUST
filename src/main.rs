@@ -7,6 +7,7 @@ use std::io;
 use std::path::Path;
 //use std::fs::File;
 use std::process::exit;
+use std::process;
 //struct defining for data abstraction
 struct Data<T>{
     kills: T,
@@ -24,9 +25,9 @@ struct Data<T>{
 
 fn main() -> std::io::Result<()> {
     //gets path for stats.txt
-    let path = Path::new("stats.txt");
+    let stats_path = Path::new("stats.txt");
     //makes tuple for all the stats in stats.txt
-    let userdata = statadder(path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    let userdata = statadder(stats_path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     if userdata.9 !=0 && userdata.2 != 0 {   
         println!("You have:");
         println!(
@@ -39,6 +40,12 @@ fn main() -> std::io::Result<()> {
         "{} kills\n{} assists\n{} deaths\n{} headshot kills\n{} Average Damange per Round \n{} Score\n{} Rounds Won\n{} Rounds Lost\n{} Wins\n{} Loses",
         userdata.0, userdata.1, userdata.2, userdata.3, userdata.4, userdata.5, userdata.6, userdata.7, userdata.8, userdata.9
         );
+    }
+    println!("if you would like to reset your data type \"reset\" else click enter to continue.");
+    let reseters = input();
+    if reseters.eq_ignore_ascii_case("reset"){
+        let unused = clear();
+        process::exit(0);
     }
     println!("please choose a map to add a stat too.");
     let mapchoose: String = input();
@@ -66,7 +73,7 @@ fn main() -> std::io::Result<()> {
     let win: i64 = input().parse().expect("Please type in a valid number!");
     println!("\nHow many matches did you lose across this data?");
     let lose: i64 = input().parse().expect("Please type in a valid number!");
-    let path = match &mapchoose[..] {
+    let map_path = match &mapchoose[..] {
         "Agency" => Path::new("agency.txt"),
         "Ancient" => Path::new("ancient.txt"),
         "Anubis" => Path::new("anubis.txt"),
@@ -83,7 +90,7 @@ fn main() -> std::io::Result<()> {
         &_ => exit(0),
     };
     let userdata = statadder(
-        path,
+        map_path,
         kills,
         assists,
         deaths,
@@ -95,9 +102,22 @@ fn main() -> std::io::Result<()> {
         win,
         lose,
     );
-        let unusedvariable = writetofile(&path,userdata.0,userdata.1,userdata.2,userdata.3,userdata.4,userdata.5,userdata.6,userdata.7,userdata.8,userdata.9,);
-    let path = Path::new("stats.txt");
-    let unusedvariable = writetofile(&path,userdata.0,userdata.1,userdata.2,userdata.3,userdata.4,userdata.5,userdata.6,userdata.7,userdata.8,userdata.9,);    Ok(())
+    let totaldata = statadder(
+        stats_path,
+        kills,
+        assists,
+        deaths,
+        hsprecent,
+        average_damage_round,
+        score,
+        rounds_won,
+        rounds_lost,
+        win,
+        lose,
+    );
+    let unusedvariable = writetofile(&map_path,userdata.0,userdata.1,userdata.2,userdata.3,userdata.4,userdata.5,userdata.6,userdata.7,userdata.8,userdata.9,);
+    let unusedvariable = writetofile(&stats_path,totaldata.0,totaldata.1,totaldata.2,totaldata.3,totaldata.4,totaldata.5,totaldata.6,totaldata.7,totaldata.8,totaldata.9,);    
+    Ok(())
 }
 
 
@@ -204,8 +224,18 @@ fn writetofile(
     fs::write(path, userdata.kills+&userdata.assists+&userdata.deaths+&userdata.hskill+&userdata.adr+&userdata.score+&userdata.rounds_won+&userdata.rounds_lost+&userdata.win+&userdata.lost)?;
     Ok(())
 }
-
-
+fn clear()->std::io::Result<()>{
+    let maps = ["agency.txt","office.txt","ancient.txt", "anubis.txt", "cache.txt", "dust 2.txt", "inferno.txt", "mirage.txt", "nuke.txt", "overpass.txt", "train.txt", "tuscan.txt", "vertigo.txt","stats.txt"];
+    println!("Are you sure you want to delete your data, this cannot be undone (Y/N)");
+    let clearinput = input();
+    if clearinput == "Y" || clearinput == "y"{
+        for i in maps{
+            let mappath = Path::new(i);
+            let goat = fs::write(mappath,"");
+        }
+    }
+    Ok(())
+}
 
 fn input() -> String {
     let mut x = String::new();
